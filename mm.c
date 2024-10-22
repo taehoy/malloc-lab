@@ -108,9 +108,7 @@ void *mm_malloc(size_t size)
         asize = DSIZE * ((size + (DSIZE) + (DSIZE - 1)) / DSIZE);
     // 기존 가용 공간 중 할당 가능한 경우       
     if ((bp = find_fit(asize)) != NULL){
-        printf("Before Condition : address : %p, block size : %d, asize : %d\n", bp, GET_SIZE(HDRP(bp)), asize);
         place(bp, asize);
-        printf("After Condition : address : %p, block size : %d, asize : %d\n", bp, GET_SIZE(HDRP(bp)), asize);
         return bp;
     }
 
@@ -119,7 +117,6 @@ void *mm_malloc(size_t size)
     if ((bp = extend_heap(extendsize/WSIZE)) == NULL)
         return NULL;
 
-    printf("extend 에러 ");
     place(bp, asize);
     return bp;
 }
@@ -180,13 +177,10 @@ static void *coalesce(void *bp)
     size_t next_alloc = GET_ALLOC(HDRP(NEXT_BLKP(bp)));
     size_t size = GET_SIZE(HDRP(bp));
 
-    // case 1
-    if(prev_alloc && next_alloc){
+    if(prev_alloc && next_alloc){ // case 1
         return bp;
     }
-    
-    // case 2
-    else if(prev_alloc && !next_alloc){
+    else if(prev_alloc && !next_alloc){ // case 2
         size += GET_SIZE(HDRP(NEXT_BLKP(bp)));
         PUT(HDRP(bp), PACK(size, 0));
         PUT(FTRP(bp), PACK(size, 0));
@@ -198,11 +192,12 @@ static void *coalesce(void *bp)
         bp = PREV_BLKP(bp);
     }
     else {                                      // case 4
-        size += GET_SIZE(HDRP(PREV_BLKP(bp)) + GET_SIZE(FTRP(NEXT_BLKP(bp))));
+        size += GET_SIZE(HDRP(PREV_BLKP(bp))) + GET_SIZE(FTRP(NEXT_BLKP(bp)));
         PUT(HDRP(PREV_BLKP(bp)), PACK(size, 0));
         PUT(FTRP(NEXT_BLKP(bp)), PACK(size, 0));
         bp = PREV_BLKP(bp);
     }
+
     return bp;
 }
 
